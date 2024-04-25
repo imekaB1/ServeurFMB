@@ -1,53 +1,48 @@
-const net = require('net');
-const binascii = require('binascii'); // Assurez-vous d'installer ce package avec `npm install binascii`
+const express = require('express');
+const bodyParser = require('body-parser');
+const binascii = require('binascii'); // Assurez-vous d'installer ce package avec npm install binascii
 
-const server = net.createServer((socket) => {
-    console.log(`[NEW CONNECTION] ${socket.remoteAddress}:${socket.remotePort} connected.`);
+const app = express();
+const port = 3001;
 
-    socket.once('data', (imei) => {
-        console.log(imei.toString());
+// Middleware pour parser le corps en text/plain en un Buffer
+app.use(bodyParser.raw({ type: 'application/octet-stream' }));
 
-        try {
-            let message = '\x01';
-            socket.write(message, 'utf-8', (error) => {
-                if (error) {
-                    console.log(`Error sending reply. Maybe it's not our device ${socket.remoteAddress}:${socket.remotePort}: ${error}`);
-                }
-            });
+// Route pour recevoir l'IMEI et envoyer une réponse initiale
+app.post('/data', (req, res) => {
+    const imei = req.body;
+    console.log(I`MEI reçu : ${imei.toString()}`);
 
-            socket.once('data', (data) => {
-                let received = binascii.hexlify(data);
-                console.log(data.toString());
-                console.log(received);
+    // Simuler l'envoi d'une réponse initiale comme dans votre serveur TCP
+    let message = Buffer.from('\x01', 'utf-8');
+    console.log(`Envoi du message initial : ${message.toString()}`);
 
-                // Supposons que decodethis et getrecord sont des fonctions que vous avez définies
-                decodethis(received);
-                let record = getrecord(received);
-                console.log(record);
-
-                message = "0000" + String(record).padStart(4, '0');
-                socket.write(message, 'utf-8', (error) => {
-                    if (error) {
-                        console.log(`Error sending final reply to ${socket.remoteAddress}:${socket.remotePort}: ${error}`);
-                    }
-                });
-
-                socket.end();
-            });
-        } catch (error) {
-            console.log(`Error receiving data from ${socket.remoteAddress}:${socket.remotePort}: ${error}`);
-            socket.end();
-        }
-    });
+    // Répondre avec le message initial
+    res.send(message);
 });
 
-server.listen(3000, () => {
-    console.log('Server listening on port 3000');
+// Route pour recevoir des données supplémentaires et envoyer une réponse finale
+app.post('/more-data', (req, res) => {
+    const data = req.body;
+    const received = binascii.hexlify(data);
+    console.log(`Données reçues : ${data.toString()}`);
+    console.log(`Données hexadécimales : ${received}`);
+
+    // Supposons que decodethis et getrecord sont des fonctions que vous avez définies
+    decodethis(received);
+    const record = getrecord(received);
+    console.log(`Enregistrement : ${record}`);
+
+    const finalMessage = "0000" + String(record).padStart(4, '0');
+    console.log(`Envoi du message final : ${finalMessage}`);
+
+    // Envoyer la réponse finale
+    res.send(finalMessage);
 });
 
 function decodethis(data) {
     // Implémentez votre logique de décodage ici
-    console.log('Decoding data:', data);
+    console.log('Décodage des données :', data);
 }
 
 function getrecord(data) {
@@ -55,3 +50,10 @@ function getrecord(data) {
     // Retourne un exemple de nombre pour cet exemple
     return 1234;
 }
+
+app.get('/test',(req,res) => {
+    res.status(200).send('serveur fonctionne')
+})
+// Démarrage du serveur sur localhost
+app.listen(port, 'localhost', () => {
+    console.log(`Serveur à l'écoute sur http://localhost:${port} `); });
