@@ -55,5 +55,5 @@ app.get('/test',(req,res) => {
     res.status(200).send('serveur fonctionne')
 })
 // Démarrage du serveur sur localhost
-app.listen(port, 'localhost', () => {
-    console.log(`Serveur à l'écoute sur http://localhost:${port} `); });
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Serveur à l'écoute sur ${port} `); });
