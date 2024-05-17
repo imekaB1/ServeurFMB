@@ -1,59 +1,49 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const binascii = require('binascii'); // Assurez-vous d'installer ce package avec npm install binascii
-
+const fs = require('fs');
 const app = express();
-const port = 3001;
+const PORT = 3001;
 
-// Middleware pour parser le corps en text/plain en un Buffer
-app.use(bodyParser.raw({ type: 'application/octet-stream' }));
+// Middleware pour analyser les données brutes du corps de la requête
+app.use(bodyParser.raw({ type: '/', limit: '10mb' }));
 
-// Route pour recevoir l'IMEI et envoyer une réponse initiale
-app.post('/data', (req, res) => {
-    const imei = req.body;
-    console.log(I`MEI reçu : ${imei.toString()}`);
+// Fonction pour traiter les données reçues
+function processData(data) {
+    const timestamp = new Date().toISOString();
+    const logEntry = `${timestamp} - ${data.toString('hex')}\n`;
 
-    // Simuler l'envoi d'une réponse initiale comme dans votre serveur TCP
-    let message = Buffer.from('\x01', 'utf-8');
-    console.log(`Envoi du message initial : ${message.toString()}`);
-
-    // Répondre avec le message initial
-    res.send(message);
-});
-
-// Route pour recevoir des données supplémentaires et envoyer une réponse finale
-app.post('/more-data', (req, res) => {
-    const data = req.body;
-    const received = binascii.hexlify(data);
-    console.log(`Données reçues : ${data.toString()}`);
-    console.log(`Données hexadécimales : ${received}`);
-
-    // Supposons que decodethis et getrecord sont des fonctions que vous avez définies
-    decodethis(received);
-    const record = getrecord(received);
-    console.log(`Enregistrement : ${record}`);
-
-    const finalMessage = "0000" + String(record).padStart(4, '0');
-    console.log(`Envoi du message final : ${finalMessage}`);
-
-    // Envoyer la réponse finale
-    res.send(finalMessage);
-});
-
-function decodethis(data) {
-    // Implémentez votre logique de décodage ici
-    console.log('Décodage des données :', data);
+    fs.appendFile('data.log', logEntry, (err) => {
+        if (err) {
+            console.error('Erreur lors de l\'enregistrement des données :', err);
+        } else {
+            console.log('Données enregistrées.');
+        }
+    });
 }
 
-function getrecord(data) {
-    // Implémentez votre logique pour obtenir un enregistrement ici
-    // Retourne un exemple de nombre pour cet exemple
-    return 1234;
-}
+// Route pour recevoir les données
+app.post('/receive-data', (req, res) => {
+    const rawData = req.body;
+    console.log('Données brutes reçues :', rawData);
+    processData(rawData);
+    res.sendStatus(200);
+});
 
+// Route pour visualiser les données
+app.get('/view-data', (req, res) => {
+    fs.readFile('data.log', 'utf8', (err, data) => {
+        if (err) {
+            res.status(500).send('Erreur lors de la lecture des données.');
+        } else {
+            res.send(`<pre>${data}</pre>`);
+        }
+    });
+});
 app.get('/test',(req,res) => {
     res.status(200).send('serveur fonctionne')
-})
-// Démarrage du serveur sur localhost
-app.listen(port, '0.0.0.0', () => {
-    console.log(`Serveur à l'écoute sur ${port} `); });
+  })
+
+// Démarrer le serveur web
+app.listen(PORT,'0.0.0.0', () => {
+    console.log(`Serveur web en écoute sur le port ${PORT}`);
+});
