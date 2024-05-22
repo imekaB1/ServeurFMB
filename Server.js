@@ -78,7 +78,7 @@ function parseAVLData(data, socket) {
       ioElements[ioId] = ioValue;
     }
 
-    console.log(Record ${i + 1}:);
+    console.log(`Record ${i + 1}:`);
     console.log('  Timestamp:', timestamp);
     console.log('  Priority:', priority);
     console.log('  GPS Data:', { longitude, latitude, altitude, angle, satellites, speed });
