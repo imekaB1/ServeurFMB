@@ -92,3 +92,4 @@ function parseAVLData(data, socket) {
 
   // Send ACK
   socket.write(Buffer.from([0x01]));
+}
