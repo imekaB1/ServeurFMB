@@ -17,8 +17,8 @@ const server = net.createServer((socket) => {
   });
 });
 
-server.listen(5000, () => {
-  console.log('Server listening on port 5000');
+server.listen(3001, '0.0.0.0',() => {
+  console.log('Server listening on port 3001');
 })
 function parseAVLData(data, socket) {
   // Suppose we have a buffer containing the AVL data
