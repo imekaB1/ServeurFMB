@@ -19,6 +19,8 @@ const server = net.createServer((socket) => {
 
 function parseAVLData(data) {
     const buffer = Buffer.from(data);
+    console.log('Full Data Buffer:', buffer.toString('hex'));
+
 
     // Parse the header
     const preamble = buffer.slice(0, 4);
