@@ -1,34 +1,58 @@
 const net = require('net');
-const config = require('./config');
-const codec8EHandler = require('./codec8EHandler');
 
+const server = net.createServer((socket) => {
+  console.log('Client connected');
 
-const server = net.createServer(socket => {
-    console.log('Teltonika device connected.');
+  socket.on('data', (data) => {
+    console.log('Data received:', data);
+    parseAVLData(data, socket);
+  });
 
-    socket.on('data', data => {
-        console.log('Data received from the device.');
-        const parsedData = codec8EHandler.parseData(parsedData.from(data));
-        // Create a buffer
+  socket.on('end', () => {
+    console.log('Client disconnected');
+  });
 
+  socket.on('error', (err) => {
+    console.error('Error:', err);
+  });
+});
+
+server.listen(3001,'0.0.0.0' () => {
+  console.log('Server listening on port 3001');
+})
+function parseAVLData(data, socket) {
+  // Suppose we have a buffer containing the AVL data
+  // Teltonika AVL data structure:
+  // Preamble - 4 bytes
+  // Data Field Length - 4 bytes
+  // Codec ID - 1 byte
+  // Number of Data - 1 byte
+  // AVL Data array
+  // CRC-16 - 4 bytes
+
+  // Ensure data is in Buffer format
+  const buffer = Buffer.from(data);
+    // Create a buffer
+const buffer = Buffer.from('This is a sample buffer');
 
 // Convert buffer to string
-const string = parsedData.toString('utf-8');
+const string = buffer.toString('utf-8');
 
 console.log(string);
 
-        console.log('Parsed Data:', parsedData);
-    });
 
-    socket.on('error', error => {
-        console.error('Error:', error);
-    });
+  // Preamble (4 bytes) and Data Field Length (4 bytes)
+  const preamble = buffer.slice(0, 4);
+  const dataFieldLength = buffer.slice(4, 8).readUInt32BE(0);
 
-    socket.on('close', () => {
-        console.log('Connection with device closed.');
-    });
-});
+  // Codec ID (1 byte)
+  const codecId = buffer.readUInt8(8);
 
-server.listen(config.PORT, config.HOST, () => {
-    console.log(`Server listening at ${config.HOST}:${config.PORT}`);
-});
+  // Number of Data (1 byte)
+  const numberOfData = buffer.readUInt8(9);
+
+  console.log('Preamble:', preamble);
+  console.log('Data Field Length:', dataFieldLength);
+  console.log('Codec ID:', codecId);
+  console.log('Number of Data:', numberOfData);
+}
