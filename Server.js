@@ -10,7 +10,7 @@ const server = net.createServer(socket => {
         console.log('Data received from the device.');
         const parsedData = codec8EHandler.parseData(parsedData.from(data));
         // Create a buffer
-const parsedData = parsedData.from('This is a sample buffer');
+
 
 // Convert buffer to string
 const string = parsedData.toString('utf-8');
