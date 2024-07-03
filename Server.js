@@ -32,8 +32,6 @@ function parseAVLData(data, socket) {
 
   // Ensure data is in Buffer format
   const buffer = Buffer.from(data);
-    // Create a buffer
-const buffer = Buffer.from('This is a sample buffer');
 
 // Convert buffer to string
 const string = buffer.toString('utf-8');
