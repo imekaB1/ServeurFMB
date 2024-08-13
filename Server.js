@@ -1,56 +1,49 @@
 const net = require('net');
+const fs = require('fs');
 
+function parseAVLData(data) {
+  const buffer = Buffer.from(data);
+  console.log('Taille du buffer reçu:', buffer.length);
+
+  if (buffer.length < 16) {
+    console.log('Buffer incomplet:', buffer.toString('hex'));
+    return; // Retour si le buffer ne contient pas suffisamment de données
+  }
+
+  const sizeOfOnerecord=67;
+  const dataBlock = buffer.slice(0, sizeOfOnerecord);
+  console.log('Bloc de données extrait:', dataBlock.toString('hex'));
+
+  // Écriture des données AVL dans un fichier pour archivage
+  fs.writeFileSync('outputData.txt', dataBlock.toString('hex'));
+  console.log('Données enregistrées avec succès.')
+}// Créer le serveur TCP
 const server = net.createServer((socket) => {
-  console.log('Client connected');
+  console.log('Client connecté');
 
   socket.on('data', (data) => {
-    console.log('Data received:', data);
-    parseAVLData(data, socket);
+    console.log('Données brutes reçues:', data.toString('hex'));
+
+    // Traiter l'IMEI
+    if (data.toString('hex').startsWith('00') && data.length === 17) { // Vérifier la longueur de l'IMEI
+      console.log('IMEI reçu:', data.toString('hex'));
+      // Envoyer une réponse d'acceptation au module
+      const response = Buffer.from([0x01]);
+      socket.write(response);
+      console.log('Réponse envoyée au module');
+    } else {
+      // Traitement des données AVL si l'IMEI est déjà accepté
+      parseAVLData(data);
+
+      socket.end();
+    }
   });
 
   socket.on('end', () => {
-    console.log('Client disconnected');
-  });
-
-  socket.on('error', (err) => {
-    console.error('Error:', err);
-  });
+    console.log('Client déconnecté');
+  })
 });
-
-server.listen(3001,'0.0.0.0' () => {
+server.listen(3001, '0.0.0.0', () => {
   console.log('Server listening on port 3001');
-})
-function parseAVLData(data, socket) {
-  // Suppose we have a buffer containing the AVL data
-  // Teltonika AVL data structure:
-  // Preamble - 4 bytes
-  // Data Field Length - 4 bytes
-  // Codec ID - 1 byte
-  // Number of Data - 1 byte
-  // AVL Data array
-  // CRC-16 - 4 bytes
 
-  // Ensure data is in Buffer format
-  const buffer = Buffer.from(data);
-
-// Convert buffer to string
-const string = buffer.toString('utf-8');
-
-console.log(string);
-
-
-  // Preamble (4 bytes) and Data Field Length (4 bytes)
-  const preamble = buffer.slice(0, 4);
-  const dataFieldLength = buffer.slice(4, 8).readUInt32BE(0);
-
-  // Codec ID (1 byte)
-  const codecId = buffer.readUInt8(8);
-
-  // Number of Data (1 byte)
-  const numberOfData = buffer.readUInt8(9);
-
-  console.log('Preamble:', preamble);
-  console.log('Data Field Length:', dataFieldLength);
-  console.log('Codec ID:', codecId);
-  console.log('Number of Data:', numberOfData);
-}
+});
